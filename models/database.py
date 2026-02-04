@@ -12,12 +12,30 @@ import enum
 # Import KST timezone utility
 from utils.timezone import now_kst
 
-# Database path
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "trading.db")
-DATABASE_URL = f"sqlite:///{DB_PATH}"
+# Database URL from environment variable (supports MySQL, PostgreSQL, SQLite)
+# Examples:
+#   SQLite: sqlite:///trading.db
+#   MySQL: mysql+pymysql://user:password@host:3306/dbname
+#   PostgreSQL: postgresql://user:password@host:5432/dbname
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# SQLAlchemy setup
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+if not DATABASE_URL:
+    # Fallback to SQLite for local development
+    DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "trading.db")
+    DATABASE_URL = f"sqlite:///{DB_PATH}"
+
+# SQLAlchemy setup - SQLite needs special connect_args
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    # MySQL/PostgreSQL - use connection pooling for production
+    engine = create_engine(
+        DATABASE_URL,
+        pool_size=5,
+        max_overflow=10,
+        pool_pre_ping=True  # Auto-reconnect on stale connections
+    )
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
