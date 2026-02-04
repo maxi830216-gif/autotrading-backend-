@@ -82,10 +82,13 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://43.201.239.150:3000",  # EC2 Frontend
         "http://43.201.239.150",
+        "https://r444874e8e3b55bb3301b9752dc982b75.apppaas.app",  # AppPaaS Frontend
+        "https://autotrading-frontend.vercel.app",  # Vercel Frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Cache Prevention Middleware
